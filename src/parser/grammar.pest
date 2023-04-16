@@ -1,0 +1,23 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+
+quote    = _{ "\"" }
+raw_char = _{ !(quote | WHITESPACE) ~ ANY }
+
+// Raw items are the parts of the doc outside quoted strings.
+raw = _{ raw_char+ }
+
+// Borrowed from the json parser example in the docs.
+// https://pest.rs/book/examples/json.html
+char  = _{
+    !("\"" | "\\") ~ ANY
+  | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+  | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+inner = _{ char* }
+
+// Quoted items need to retain their whitespace
+quoted = _{ quote ~ inner ~ quote }
+
+item      = @{ quoted | raw }
+item_list =  { item* }
+root      =  { WHITESPACE* ~ item_list ~ WHITESPACE* }
